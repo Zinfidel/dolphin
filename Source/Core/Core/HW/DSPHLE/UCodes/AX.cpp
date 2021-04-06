@@ -494,6 +494,9 @@ void AXUCode::SetMainLR(u32 src_addr)
 
 void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
 {
+	// MOD: Pre-amplify by some fraction to prevent clipping in the clamping function.
+	const double pre_amplification_factor = 0.3;
+
 	int surround_buffer[5 * 32];
 
 	for (u32 i = 0; i < 5 * 32; ++i)
@@ -506,8 +509,8 @@ void AXUCode::OutputSamples(u32 lr_addr, u32 surround_addr)
 	// Output samples clamped to 16 bits and interlaced RLRLRLRLRL...
 	for (u32 i = 0; i < 5 * 32; ++i)
 	{
-		int left  = MathUtil::Clamp(m_samples_left[i], -32767, 32767);
-		int right = MathUtil::Clamp(m_samples_right[i], -32767, 32767);
+		int left  = MathUtil::Clamp((int)(m_samples_left[i]*pre_amplification_factor), -32767, 32767);
+		int right = MathUtil::Clamp((int)(m_samples_right[i]*pre_amplification_factor), -32767, 32767);
 
 		buffer[2 * i + 0] = Common::swap16(right);
 		buffer[2 * i + 1] = Common::swap16(left);

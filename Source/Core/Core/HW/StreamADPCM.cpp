@@ -35,7 +35,9 @@ static s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
 		hist = (hist1 * 0x62) - (hist2 * 0x37);
 		break;
 	}
-	hist = MathUtil::Clamp((hist + 0x20) >> 6, -0x200000, 0x1fffff);
+	// MOD: Removing this clamp completely relieves the DTK stream of clipping...
+	//hist = MathUtil::Clamp((hist + 0x20) >> 6, -0x200000, 0x1fffff);
+	hist = (hist + 0x20) >> 6;
 
 	s32 cur = (((s16)(bits << 12) >> (q & 0xf)) << 6) + hist;
 
@@ -43,6 +45,10 @@ static s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
 	hist1 = cur;
 
 	cur >>= 6;
+
+	// MOD: Reduce amplitude to 30%
+	cur = (s32)((double)cur * 0.3);
+
 	cur = MathUtil::Clamp(cur, -0x8000, 0x7fff);
 
 	return (s16)cur;
